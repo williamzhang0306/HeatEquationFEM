@@ -110,7 +110,7 @@ delta_t = total_time/n_steps
 t_elapsed = 0
 
 F = np.zeros(n_nodes)
-for step in range(0,n_steps):
+for step in range(0,1):
     F = np.zeros(n_nodes)
     for k in range(0,n_elements):
         # find local elements
@@ -128,6 +128,7 @@ for step in range(0,n_steps):
             F[global_node] += flocal[l]
             #print(f"\t[DBG connectivity] K = {k} L = {l} global = {global_node}")
 
+        print(F)
     ###One way to do it?
     A = - delta_t * M_inv @ K
     b = delta_t * M_inv @ F
