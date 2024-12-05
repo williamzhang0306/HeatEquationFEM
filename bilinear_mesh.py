@@ -7,14 +7,6 @@ import math
 import matplotlib.pyplot as plt
 from typing import Callable
 
-# basis functions for bilienar parent element
-# defined over the interval [-1,1]
-phi1 = lambda chi: (1 - chi)/2
-phi2 = lambda chi: (chi + 1)/2
-dphi1_dchi = -1/2
-dphi2_dchi = 1/2
-phis = [phi1,phi2]
-dphi_dchis = [-1/2, 1/2]
 
 def quadrature(f: Callable, order:int = 2):
     '''
@@ -42,102 +34,130 @@ class BilinearUniformMesh():
     '''
 
     def __init__(self, n_nodes):
+        # uniform mesh properties
         self.n_nodes = n_nodes
         self.n_elements = n_nodes - 1
-        self.connectivty = [(x,x+1) for x in range(0,n_nodes)]
-        self.h = 1/self.n_elements # mesh spacing
-        self.dx_dchi = self.h/2 # jacobian mapping
+        self.h = 1/self.n_elements # node spacing
 
-
-
-def get_stiffness_matrix(n_nodes, connectivity, dx_dchi, dchi_dx):
-    
-    # global K
-    K = np.zeros([n_nodes,n_nodes])
-
-    for element in range(0,n_nodes-1):
-        # calculate the local k matrix
-        # If the mesh is not uniform this must be recalculated per element
-        klocal = np.zeros([2,2])
-
-        for i in range(0,2):
-            for j in range(0,2):
-                integrand = lambda chi: \
-                    dchi_dx*dphi_dchis[i] * dchi_dx * dphi_dchis[j] * dx_dchi
-
-                klocal[i,j] = quadrature(integrand) # integrate with respect to chi
-
-        # map local k matrix to global K matrix
-        for l in range(0,2):
-            for m in range(0,2):
-                global_node_1 = connectivity[element][l]
-                global_node_2 = connectivity[element][m]
-                K[global_node_1][global_node_2] += klocal[l][m]
-
-    return K
-
-def get_mass_matrix(n_nodes, connectivity, dx_dchi, dchi_dx):
-    
-    # global K
-    M = np.zeros([n_nodes,n_nodes])
-
-    for element in range(0,n_nodes-1):
-        # calculate the local k matrix
-        # If the mesh is not uniform this must be recalculated per element
-        mlocal = np.zeros([2,2])
-
-        for i in range(0,2):
-            for j in range(0,2):
-                integrand = lambda chi: \
-                    2 * phis[i](chi) * phis[j](chi) * dx_dchi
-
-                mlocal[i,j] = quadrature(integrand, order =2) # integrate with respect to chi
-
-        print(mlocal)
-
-        # map local k matrix to global K matrix
-        for l in range(0,2):
-            for m in range(0,2):
-                global_node_1 = connectivity[element][l]
-                global_node_2 = connectivity[element][m]
-                M[global_node_1][global_node_2] += mlocal[l][m]
-
-    return M
-
-def get_force_matrix(n_nodes,connectivity, dx_dchi, f, t_elapsed, h):
-    
-    F = np.zeros(n_nodes)
-
-    for k in range(0,n_nodes-1):
-        # calculate local f (on the boundaries)
-        flocal = [0, 0]
-        for l in range(0,2):
-            xi = k * h
-            integrand = lambda chi: \
-                f((chi+1)*h/2 + xi, t_elapsed)*phis[l](chi)*dx_dchi
-            flocal[l] = quadrature(integrand, order = 3)
+        # used to map local element node index to global node index
+        self.connectivity = [(x,x+1) for x in range(0,self.n_nodes)] 
         
-        print(flocal)
-        # map f local to f global
-        for l in range(0,2):
-            global_node = connectivity[k][l]
-            F[global_node] += flocal[l]
+        # basis functions and first derivatives
+        phi1 = lambda chi: (1 - chi)/2
+        phi2 = lambda chi: (chi + 1)/2
+        dphi1_dchi = -1/2
+        dphi2_dchi = 1/2
+        self.phis = [phi1,phi2]
+        self.dphi_dchis = [dphi1_dchi, dphi2_dchi]
 
-    return F
+        # 1D Jacobians mapping x space to chi space
+        self.dx_dchi = self.h/2 
+        self.dchi_dx = 2/self.h 
+
+    def get_node_locations(self):
+        '''
+        Returns the spatial locations of the nodes.
+        '''
+        return [i*self.h for i in range(0,self.n_nodes)]
+    
+    def get_stiffness_matrix(self):
+        '''
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sem 
+        metus, viverra in lacus a, suscipit blandit enim. Morbi nisi velit, 
+        feugiat quis scelerisque ac, sollicitudin ut ante. Mauris dictum dui 
+        tellus, id tempus nisl tincidunt in. Mauris purus ante, interdum a pharetra 
+        '''
+        K = np.zeros([self.n_nodes,self.n_nodes])
+
+        for element in range(0,self.n_elements):
+            # calculate the local k matrix
+            # If the mesh is not uniform this must be recalculated per element
+            klocal = np.zeros([2,2])
+
+            for i in range(0,2):
+                for j in range(0,2):
+                    integrand = lambda chi: self.dchi_dx*self.dphi_dchis[i] \
+                                            * self.dchi_dx*self.dphi_dchis[j] \
+                                            * self.dx_dchi
+
+                    klocal[i,j] = quadrature(integrand) # integrate with respect to chi
+
+            # map local k matrix to global K matrix
+            for l in range(0,2):
+                for m in range(0,2):
+                    global_node_1 = self.connectivity[element][l]
+                    global_node_2 = self.connectivity[element][m]
+                    K[global_node_1][global_node_2] += klocal[l][m]
+
+        return K
+    
+    def get_mass_matrix(self):
+        '''
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sem 
+        metus, viverra in lacus a, suscipit blandit enim. Morbi nisi velit, 
+        feugiat quis scelerisque ac, sollicitudin ut ante. Mauris dictum dui 
+        tellus, id tempus nisl tincidunt in. Mauris purus ante, interdum a pharetra 
+        '''
+        # global M
+        M = np.zeros([self.n_nodes,self.n_nodes])
+
+        for element in range(0,self.n_nodes-1):
+            # calculate the local m matrix
+            # If the mesh is not uniform this must be recalculated per element
+            mlocal = np.zeros([2,2])
+
+            for i in range(0,2):
+                for j in range(0,2):
+                    integrand = lambda chi: \
+                        2 * self.phis[i](chi) * self.phis[j](chi) * self.dx_dchi
+
+                    mlocal[i,j] = quadrature(integrand, order =2) # integrate with respect to chi
+
+            print(mlocal)
+
+            # map local k matrix to global K matrix
+            for l in range(0,2):
+                for m in range(0,2):
+                    global_node_1 = self.connectivity[element][l]
+                    global_node_2 = self.connectivity[element][m]
+                    M[global_node_1][global_node_2] += mlocal[l][m]
+
+        return M
+    
+    def get_force_matrix(self, f, t_elapsed):
+        '''
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sem 
+        metus, viverra in lacus a, suscipit blandit enim. Morbi nisi velit, 
+        feugiat quis scelerisque ac, sollicitudin ut ante. Mauris dictum dui 
+        tellus, id tempus nisl tincidunt in. Mauris purus ante, interdum a pharetra 
+        '''
+        F = np.zeros(self.n_nodes)
+
+        for k in range(0,self.n_nodes-1):
+            # calculate local f (on the boundaries)
+            flocal = [0, 0]
+            for l in range(0,2):
+                xi = k * self.h
+                integrand = lambda chi: \
+                    f((chi+1)*self.h/2 + xi, t_elapsed)*self.phis[l](chi)*self.dx_dchi
+                flocal[l] = quadrature(integrand, order = 3)
+            
+            print(flocal)
+            # map f local to f global
+            for l in range(0,2):
+                global_node = self.connectivity[k][l]
+                F[global_node] += flocal[l]
+
+        return F
 
 
 def test():
-    n_nodes = 11
-    n_elements = n_nodes -1 
-    connectivity = [(x,x+1) for x in range(0,n_elements)]
-    h = 1/n_elements
-    dx_dchi = h/2
-    dchi_dx = 2/h
-
-    K = get_stiffness_matrix(n_nodes, connectivity, dx_dchi, dchi_dx)
-    M = get_mass_matrix(n_nodes, connectivity, dx_dchi, dchi_dx)
-
+    N = 11
+    mesh = BilinearUniformMesh(N)
+    K = mesh.get_stiffness_matrix()
+    M = mesh.get_mass_matrix()
     f = lambda x,t : (math.pi**2 - 1)*math.exp(-t)*math.sin(math.pi*x)
-    F = get_force_matrix(n_nodes, connectivity, dx_dchi, f,t_elapsed=1/551, h=h)
+    F = mesh.get_force_matrix(f, 1/552)
     print(F)
 
+test()
