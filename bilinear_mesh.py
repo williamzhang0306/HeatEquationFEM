@@ -1,7 +1,3 @@
-'''
-
-'''
-
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -96,7 +92,6 @@ class BilinearUniformMesh():
 
         for element in range(0,self.n_nodes-1):
             # calculate the local m matrix
-            # If the mesh is not uniform this must be recalculated per element
             mlocal = np.zeros([2,2])
 
             for i in range(0,2):

@@ -8,7 +8,7 @@ def solve_heat_equation(mesh: BilinearUniformMesh,
                         u_l: Union [float, None], 
                         u_r: Union [float, None], 
                         f: Callable, 
-                        dt:float, 
+                        n_steps: int, 
                         tf:float, 
                         method: Literal["forward_euler", "backward_euler"]):
     '''
@@ -21,7 +21,7 @@ def solve_heat_equation(mesh: BilinearUniformMesh,
     - u_l (float or None): The left essential boundary condition. If None, no B.C is applied.
     - u_r (float or None): Similarly the right essential b.c.
     - f (Callable): f(x,t) the forcing function. Must be callable as f(x,t)
-    - dt (float): The time step size.
+    - n_steps (float): The number of time steps to take.
     - tf (float): Final time the solution is advanced to.
 
     Returns:
@@ -30,7 +30,8 @@ def solve_heat_equation(mesh: BilinearUniformMesh,
         U[i,j] = the solution at time step i and node j.
     '''
 
-    time_steps = np.arange(0,tf+dt,dt)
+    time_steps = np.linspace(0,tf,n_steps+1)
+    dt = tf/n_steps
 
     U = np.zeros([len(time_steps),mesh.n_nodes])
     K = mesh.get_stiffness_matrix()
