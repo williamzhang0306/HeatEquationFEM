@@ -32,7 +32,7 @@ class BilinearUniformMesh():
     interval x in [0,1] using the Galerkin FEM with uniform, bilinear elements.
     '''
 
-    def __init__(self, n_nodes):
+    def __init__(self, n_nodes:int ):
         # uniform mesh properties
         self.n_nodes = n_nodes
         self.n_elements = n_nodes - 1
@@ -55,16 +55,13 @@ class BilinearUniformMesh():
 
     def get_node_locations(self) -> np.ndarray:
         '''
-        Returns the spatial locations of the nodes.
+        Returns the spatial locations of the nodes in the mesh.
         '''
         return np.array([i*self.h for i in range(0,self.n_nodes)])
     
-    def get_stiffness_matrix(self):
+    def get_stiffness_matrix(self) -> np.ndarray:
         '''
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sem 
-        metus, viverra in lacus a, suscipit blandit enim. Morbi nisi velit, 
-        feugiat quis scelerisque ac, sollicitudin ut ante. Mauris dictum dui 
-        tellus, id tempus nisl tincidunt in. Mauris purus ante, interdum a pharetra 
+        Returns the stiffness matrix K.
         '''
         K = np.zeros([self.n_nodes,self.n_nodes])
 
@@ -92,10 +89,7 @@ class BilinearUniformMesh():
     
     def get_mass_matrix(self) -> np.ndarray:
         '''
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sem 
-        metus, viverra in lacus a, suscipit blandit enim. Morbi nisi velit, 
-        feugiat quis scelerisque ac, sollicitudin ut ante. Mauris dictum dui 
-        tellus, id tempus nisl tincidunt in. Mauris purus ante, interdum a pharetra 
+        Returns the mass matrix M.
         '''
         # global M
         M = np.zeros([self.n_nodes,self.n_nodes])
@@ -121,12 +115,13 @@ class BilinearUniformMesh():
 
         return M
     
-    def get_force_matrix(self, f, t_elapsed)-> np.ndarray:
+    def get_force_matrix(self, f: Callable, t_elapsed: float)-> np.ndarray:
         '''
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sem 
-        metus, viverra in lacus a, suscipit blandit enim. Morbi nisi velit, 
-        feugiat quis scelerisque ac, sollicitudin ut ante. Mauris dictum dui 
-        tellus, id tempus nisl tincidunt in. Mauris purus ante, interdum a pharetra 
+        Returns the force vector F at time t_elapsed.
+
+        Arguments:
+        - f (Callable): a function of time and space, f(x,t).
+        - t (float): the time at which to evaluate f.
         '''
         F = np.zeros(self.n_nodes)
 
@@ -145,16 +140,3 @@ class BilinearUniformMesh():
                 F[global_node] += flocal[l]
 
         return F
-
-
-def test():
-    N = 11
-    mesh = BilinearUniformMesh(N)
-    K = mesh.get_stiffness_matrix()
-    M = mesh.get_mass_matrix()
-    f = lambda x,t : (math.pi**2 - 1)*math.exp(-t)*math.sin(math.pi*x)
-    F = mesh.get_force_matrix(f, 1/552)
-    print(F)
-
-if __name__ == '__main__':
-    test()

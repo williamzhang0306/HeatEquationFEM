@@ -1,8 +1,33 @@
 from bilinear_mesh import BilinearUniformMesh
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Callable, Literal, Union
 
-def solve_heat_equation(mesh: BilinearUniformMesh, u0, u_l, u_r, f, dt, tf, method):
+def solve_heat_equation(mesh: BilinearUniformMesh, 
+                        u0: np.ndarray, 
+                        u_l: Union [float, None], 
+                        u_r: Union [float, None], 
+                        f: Callable, 
+                        dt:float, 
+                        tf:float, 
+                        method: Literal["forward_euler", "backward_euler"]):
+    '''
+    Solves the 1D heat equation using tje Galerkin finite element method.
+
+    Arguments:
+    - mesh (BilinearUniformMesh): Mesh object representing the spatial discretization.
+    - u0 (np.ndarray): The initial conditions, a.k.a u(x,t=0).
+    - u_l (float or None): The left essential boundary condition. If None, no B.C is applied.
+    - u_r (float or None): Similarly the right essential b.c.
+    - f (Callable): f(x,t) the forcing function. Must be callable as f(x,t)
+    - dt (float): The time step size.
+    - tf (float): Final time the solution is advanced to.
+
+    Returns:
+    - time_steps (np.ndarray): A vector of time steps solutions are evaluated at.
+    - U (np.ndarray): A matrix of size (# timestep x # nodes), 
+        U[i,j] = the solution at time step i and node j.
+    '''
 
     time_steps = np.arange(0,tf+dt,dt)
 
@@ -62,24 +87,3 @@ def solve_heat_equation(mesh: BilinearUniformMesh, u0, u_l, u_r, f, dt, tf, meth
             U[i+1,:] = np.linalg.solve(A,b)
 
     return time_steps, U
-
-def main():
-    N = 11
-    mesh = BilinearUniformMesh(N)
-    u0 = np.sin( np.pi * mesh.get_node_locations())
-    u_left = 0
-    u_right = 0
-    f = lambda x,t: (np.pi**2 - 1) * np.exp(-t) * np.sin(np.pi * x)
-    dt = 1/551
-    tf = 1
-
-    t, U = solve_heat_equation(mesh, u0, u_left, u_right, f, dt, tf, 'forward_euler')
-
-    plt.plot(mesh.get_node_locations(), U[-1,:], '--s',label = 'numerical')
-    x=np.linspace(0,1,1000)
-    plt.plot(x, np.exp(-t[-1])*np.sin(np.pi * x), label = 'analytical soln')    
-    plt.legend()
-    plt.show()
-
-if __name__ == '__main__':
-    main()
