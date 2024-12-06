@@ -12,7 +12,8 @@ def solve_heat_equation(mesh: BilinearUniformMesh,
                         tf:float, 
                         method: Literal["forward_euler", "backward_euler"]):
     '''
-    Solves the 1D heat equation using tje Galerkin finite element method.
+    Solves the 1D heat equation with dirchlet boundary conditions using 
+    the Galerkin finite element method.
 
     Arguments:
     - mesh (BilinearUniformMesh): Mesh object representing the spatial discretization.
@@ -87,3 +88,23 @@ def solve_heat_equation(mesh: BilinearUniformMesh,
             U[i+1,:] = np.linalg.solve(A,b)
 
     return time_steps, U
+
+if __name__ == '__main__':
+    mesh = BilinearUniformMesh(n_nodes = 11)
+    u0 = np.sin(np.pi * mesh.get_node_locations()) # initial conditions at each node
+    u_left = 0
+    u_right = 0
+    f = lambda x,t: (np.pi**2 - 1)*np.exp(-t)*np.sin(np.pi * x)
+    delta_t = 1/551
+    t_final = 1
+    method = 'forward_euler'
+
+    t, U = solve_heat_equation(mesh, u0, u_left, u_right, f, delta_t, t_final, method)
+    u_f = U[1,:] # finial solution is the last row of the solutions matrix U.
+
+    plt.plot(mesh.get_node_locations(), u_f, '--s', label = 'Forward Euler')
+    x = np.linspace(0,1,1000)
+    plt.plot(x,np.exp(-t_final)*np.sin(np.pi*x), color = 'r', label = 'Analytic Solution')
+
+    plt.legend()
+    plt.show()
