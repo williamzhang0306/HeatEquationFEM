@@ -37,7 +37,6 @@ def solve_heat_equation(mesh: BilinearUniformMesh,
     M = mesh.get_mass_matrix()
 
     for i,t in enumerate(time_steps):
-        print(U[i,:])
 
         # Set initial condition.
         if i == 0:
