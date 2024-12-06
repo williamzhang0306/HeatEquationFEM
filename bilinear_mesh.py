@@ -23,7 +23,6 @@ def quadrature(f: Callable, order:int = 2):
         points = [-math.sqrt(3/5), 0 , math.sqrt(3/5)]
         weights = [5/9, 8/9, 5/9]
 
-    #print([(xi,wi) for (xi,wi) in zip(points,weights)])
     return sum([wi * f(xi) for (xi,wi) in zip(points,weights)])
 
 
@@ -54,11 +53,11 @@ class BilinearUniformMesh():
         self.dx_dchi = self.h/2 
         self.dchi_dx = 2/self.h 
 
-    def get_node_locations(self):
+    def get_node_locations(self) -> np.ndarray:
         '''
         Returns the spatial locations of the nodes.
         '''
-        return [i*self.h for i in range(0,self.n_nodes)]
+        return np.array([i*self.h for i in range(0,self.n_nodes)])
     
     def get_stiffness_matrix(self):
         '''
@@ -91,7 +90,7 @@ class BilinearUniformMesh():
 
         return K
     
-    def get_mass_matrix(self):
+    def get_mass_matrix(self) -> np.ndarray:
         '''
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sem 
         metus, viverra in lacus a, suscipit blandit enim. Morbi nisi velit, 
@@ -109,11 +108,9 @@ class BilinearUniformMesh():
             for i in range(0,2):
                 for j in range(0,2):
                     integrand = lambda chi: \
-                        2 * self.phis[i](chi) * self.phis[j](chi) * self.dx_dchi
+                        self.phis[i](chi) * self.phis[j](chi) * self.dx_dchi
 
                     mlocal[i,j] = quadrature(integrand, order =2) # integrate with respect to chi
-
-            print(mlocal)
 
             # map local k matrix to global K matrix
             for l in range(0,2):
@@ -124,7 +121,7 @@ class BilinearUniformMesh():
 
         return M
     
-    def get_force_matrix(self, f, t_elapsed):
+    def get_force_matrix(self, f, t_elapsed)-> np.ndarray:
         '''
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sem 
         metus, viverra in lacus a, suscipit blandit enim. Morbi nisi velit, 
@@ -142,7 +139,6 @@ class BilinearUniformMesh():
                     f((chi+1)*self.h/2 + xi, t_elapsed)*self.phis[l](chi)*self.dx_dchi
                 flocal[l] = quadrature(integrand, order = 3)
             
-            print(flocal)
             # map f local to f global
             for l in range(0,2):
                 global_node = self.connectivity[k][l]
@@ -160,4 +156,5 @@ def test():
     F = mesh.get_force_matrix(f, 1/552)
     print(F)
 
-test()
+if __name__ == '__main__':
+    test()
