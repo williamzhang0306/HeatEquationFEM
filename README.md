@@ -2,7 +2,9 @@
 
 This repository contains the code for a numerical solver of the 1D heat equation using Galerkin's Finite Element Method.
 
-![](figures/animation.gif)
+<p align="center">
+  <img src="figures/animation.gif" />
+</p>
 
 The FEM code is organized into two files, `bilinear_mesh.py` and `heat_equation.py`. 
 - `bilinear_mesh.py` contains the code that represents a uniform mesh with bilinear elements.
